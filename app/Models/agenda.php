@@ -10,5 +10,15 @@ class Agenda extends Model
     use HasFactory;
 
     protected $table = 'agenda';
-    protected $guarded = ['id']; 
+    protected $fillable = [
+        'judul',
+        'keterangan',
+        'is_done'
+    ];
+
+    protected $casts = [
+        'is_done' => 'boolean',
+    ];
+
+    public $timestamps = true;
 }

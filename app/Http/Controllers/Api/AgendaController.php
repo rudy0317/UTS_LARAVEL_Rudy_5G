@@ -8,25 +8,74 @@ use Illuminate\Http\Request;
 
 class AgendaController extends Controller
 {
-    public function index() {
-        return agenda::all();
+    // GET - semua
+    public function index()
+    {
+        return response()->json(Agenda::all(), 200);
     }
 
-    public function store(Request $request) {
-        return agenda::create($request->all());
+    // POST - tambah data
+    public function store(Request $request)
+    {
+        // Validasi optional
+        $request->validate([
+            'judul' => 'required|string',
+            'keterangan' => 'nullable|string',
+            'is_done' => 'nullable'
+        ]);
+
+        $agenda = Agenda::create([
+            'judul' => $request->judul,
+            'keterangan' => $request->keterangan,
+            'is_done' => filter_var($request->is_done, FILTER_VALIDATE_BOOLEAN)
+        ]);
+
+        return response()->json($agenda, 201);
     }
 
-    public function show($id) {
-        return agenda::findOrFail($id);
+    // GET by ID
+    public function show($id)
+    {
+        $agenda = Agenda::find($id);
+
+        if (!$agenda) {
+            return response()->json(['message' => 'Agenda not found'], 404);
+        }
+
+        return response()->json($agenda, 200);
     }
 
-    public function update(Request $request, $id) {
-        $agenda = agenda::findOrFail($id);
-        $agenda->update($request->all());
-        return $agenda;
+    // PUT - update
+    public function update(Request $request, $id)
+    {
+        $agenda = Agenda::find($id);
+
+        if (!$agenda) {
+            return response()->json(['message' => 'Agenda not found'], 404);
+        }
+
+        $agenda->update([
+            'judul' => $request->judul ?? $agenda->judul,
+            'keterangan' => $request->keterangan ?? $agenda->keterangan,
+            'is_done' => $request->has('is_done')
+                ? filter_var($request->is_done, FILTER_VALIDATE_BOOLEAN)
+                : $agenda->is_done
+        ]);
+
+        return response()->json($agenda, 200);
     }
 
-    public function destroy($id) {
-        return agenda::destroy($id);
+    // DELETE
+    public function destroy($id)
+    {
+        $agenda = Agenda::find($id);
+
+        if (!$agenda) {
+            return response()->json(['message' => 'Agenda not found'], 404);
+        }
+
+        $agenda->delete();
+
+        return response()->json(['message' => 'Agenda deleted'], 200);
     }
 }
